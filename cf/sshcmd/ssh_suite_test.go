@@ -1,4 +1,4 @@
-package sshCmd_test
+package sshcmd_test
 
 import (
 	"io/ioutil"

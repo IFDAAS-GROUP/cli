@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"time"
 
 	"golang.org/x/crypto/ssh"
 
@@ -15,9 +14,9 @@ import (
 	. "code.cloudfoundry.org/cli/cf/i18n"
 	"code.cloudfoundry.org/cli/cf/net"
 	"code.cloudfoundry.org/cli/cf/requirements"
-	sshCmd "code.cloudfoundry.org/cli/cf/ssh"
-	"code.cloudfoundry.org/cli/cf/ssh/options"
-	sshTerminal "code.cloudfoundry.org/cli/cf/ssh/terminal"
+	"code.cloudfoundry.org/cli/cf/sshcmd"
+	"code.cloudfoundry.org/cli/cf/sshcmd/options"
+	sshterminal "code.cloudfoundry.org/cli/cf/sshcmd/terminal"
 	"code.cloudfoundry.org/cli/cf/terminal"
 )
 
@@ -28,7 +27,7 @@ type SSH struct {
 	appReq        requirements.ApplicationRequirement
 	sshCodeGetter commands.SSHCodeGetter
 	opts          *options.SSHOptions
-	secureShell   sshCmd.SecureShell
+	secureShell   sshcmd.SecureShell
 }
 
 type sshInfo struct {
@@ -92,7 +91,7 @@ func (cmd *SSH) SetDependency(deps commandregistry.Dependency, pluginCall bool) 
 	cmd.gateway = deps.Gateways["cloud-controller"]
 
 	if deps.WildcardDependency != nil {
-		cmd.secureShell = deps.WildcardDependency.(sshCmd.SecureShell)
+		cmd.secureShell = deps.WildcardDependency.(sshcmd.SecureShell)
 	}
 
 	//get ssh-code for dependency
@@ -127,14 +126,13 @@ func (cmd *SSH) Execute(fc flags.FlagContext) error {
 
 	//init secureShell if it is not already set by SetDependency() with fakes
 	if cmd.secureShell == nil {
-		cmd.secureShell = sshCmd.NewSecureShell(
-			sshCmd.DefaultSecureDialer(),
-			sshTerminal.DefaultHelper(),
-			sshCmd.DefaultListenerFactory(),
-			30*time.Second,
+		cmd.secureShell = sshcmd.NewSecureShell(
+			sshcmd.DefaultSecureDialer(),
+			sshterminal.DefaultHelper(),
+			sshcmd.DefaultListenerFactory(),
+			sshcmd.DefaultKeepAliveInterval,
 			app.State,
 			app.GUID,
-			app.Diego,
 			info.SSHEndpointFingerprint,
 			info.SSHEndpoint,
 			sshAuthCode,
@@ -155,7 +153,7 @@ func (cmd *SSH) Execute(fc flags.FlagContext) error {
 	if cmd.opts.SkipRemoteExecution {
 		err = cmd.secureShell.Wait()
 	} else {
-		err = cmd.secureShell.InteractiveSession()
+		err = cmd.secureShell.InteractiveSession(os.Stdin, os.Stdout, os.Stderr)
 	}
 
 	if err != nil {

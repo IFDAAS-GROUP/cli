@@ -1,4 +1,4 @@
-package sshCmd
+package sshcmd
 
 import (
 	"crypto/md5"
@@ -19,9 +19,9 @@ import (
 
 	"golang.org/x/crypto/ssh"
 
-	"code.cloudfoundry.org/cli/cf/ssh/options"
-	"code.cloudfoundry.org/cli/cf/ssh/sigwinch"
-	"code.cloudfoundry.org/cli/cf/ssh/terminal"
+	"code.cloudfoundry.org/cli/cf/sshcmd/options"
+	"code.cloudfoundry.org/cli/cf/sshcmd/sigwinch"
+	"code.cloudfoundry.org/cli/cf/sshcmd/terminal"
 	"github.com/docker/docker/pkg/term"
 )
 
@@ -35,7 +35,7 @@ const (
 
 type SecureShell interface {
 	Connect(opts *options.SSHOptions) error
-	InteractiveSession() error
+	InteractiveSession(stdin io.ReadCloser, stdout, stderr io.Writer) error
 	LocalPortForward() error
 	Wait() error
 	Close() error
@@ -84,7 +84,6 @@ type secureShell struct {
 	keepAliveInterval      time.Duration
 	appState               string
 	processGUID            string
-	processOnDiego         bool
 	sshEndpointFingerprint string
 	sshEndpoint            string
 	token                  string
@@ -101,7 +100,6 @@ func NewSecureShell(
 	keepAliveInterval time.Duration,
 	appState string,
 	processGUID string,
-	processOnDiego bool,
 	sshEndpointFingerprint string,
 	sshEndpoint string,
 	token string,
@@ -113,7 +111,6 @@ func NewSecureShell(
 		keepAliveInterval:      keepAliveInterval,
 		appState:               appState,
 		processGUID:            processGUID,
-		processOnDiego:         processOnDiego,
 		sshEndpointFingerprint: sshEndpointFingerprint,
 		sshEndpoint:            sshEndpoint,
 		token:                  token,
@@ -214,7 +211,7 @@ func copyAndDone(wg *sync.WaitGroup, dest io.Writer, src io.Reader) {
 	wg.Done()
 }
 
-func (c *secureShell) InteractiveSession() error {
+func (c *secureShell) InteractiveSession(stdin io.ReadCloser, stdout, stderr io.Writer) error {
 	var err error
 
 	secureClient := c.secureClient
@@ -225,8 +222,6 @@ func (c *secureShell) InteractiveSession() error {
 		return fmt.Errorf("SSH session allocation failed: %s", err.Error())
 	}
 	defer session.Close()
-
-	stdin, stdout, stderr := c.terminalHelper.StdStreams()
 
 	inPipe, err := session.StdinPipe()
 	if err != nil {
@@ -330,10 +325,6 @@ func (c *secureShell) Wait() error {
 func (c *secureShell) validateTarget(opts *options.SSHOptions) error {
 	if strings.ToUpper(c.appState) != "STARTED" {
 		return fmt.Errorf("Application %q is not in the STARTED state", opts.AppName)
-	}
-
-	if !c.processOnDiego {
-		return fmt.Errorf("Application %q is not running on Diego", opts.AppName)
 	}
 
 	return nil
@@ -469,6 +460,8 @@ func (d *secureDialer) Dial(network string, address string, config *ssh.ClientCo
 
 	return &secureClient{client: client}, nil
 }
+
+const DefaultKeepAliveInterval = 30 * time.Second
 
 func DefaultSecureDialer() SecureDialer {
 	return &secureDialer{}

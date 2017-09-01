@@ -4,7 +4,7 @@
 // skipping windows because Unix/Linux only syscall in test.
 // should refactor out the conflicts so we could test this package in multi platforms.
 
-package sshCmd_test
+package sshcmd_test
 
 import (
 	"errors"
@@ -16,11 +16,10 @@ import (
 	"time"
 
 	"code.cloudfoundry.org/cli/cf/models"
-	"code.cloudfoundry.org/cli/cf/ssh"
-	"code.cloudfoundry.org/cli/cf/ssh/options"
-	"code.cloudfoundry.org/cli/cf/ssh/sshfakes"
-	"code.cloudfoundry.org/cli/cf/ssh/terminal"
-	"code.cloudfoundry.org/cli/cf/ssh/terminal/terminalfakes"
+	"code.cloudfoundry.org/cli/cf/sshcmd/options"
+	"code.cloudfoundry.org/cli/cf/sshcmd/sshfakes"
+	"code.cloudfoundry.org/cli/cf/sshcmd/terminal"
+	"code.cloudfoundry.org/cli/cf/sshcmd/terminal/terminalfakes"
 	"code.cloudfoundry.org/diego-ssh/server"
 	fake_server "code.cloudfoundry.org/diego-ssh/server/fakes"
 	"code.cloudfoundry.org/diego-ssh/test_helpers"

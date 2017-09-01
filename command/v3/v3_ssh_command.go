@@ -1,19 +1,11 @@
 package v3
 
 import (
-	"errors"
-	"os"
-	"strings"
-	"time"
-
-	"golang.org/x/crypto/ssh"
+	"io"
 
 	"code.cloudfoundry.org/cli/actor/sharedaction"
 	"code.cloudfoundry.org/cli/actor/v2action"
 	"code.cloudfoundry.org/cli/actor/v3action"
-	sshcmd "code.cloudfoundry.org/cli/cf/ssh"
-	sshoptions "code.cloudfoundry.org/cli/cf/ssh/options"
-	sshterminal "code.cloudfoundry.org/cli/cf/ssh/terminal"
 	"code.cloudfoundry.org/cli/command"
 	"code.cloudfoundry.org/cli/command/flag"
 	sharedV2 "code.cloudfoundry.org/cli/command/v2/shared"
@@ -21,7 +13,16 @@ import (
 )
 
 type V3SSHActor interface {
-	GetApplicationSummaryByNameAndSpace(appName string, spaceGUID string) (v3action.ApplicationSummary, v3action.Warnings, error)
+	ExecuteSecureShellByAppNameAndSpace(
+		appName,
+		spaceGUID,
+		processType string,
+		processIndex int,
+		sshInfo v2action.SSHInfo,
+		stdin io.ReadCloser,
+		stdout,
+		stderr io.Writer,
+	) error
 }
 
 type V2SSHActor interface {
@@ -80,12 +81,6 @@ func (cmd V3SSHCommand) Execute(args []string) error {
 		return shared.HandleError(err)
 	}
 
-	summary, warnings, err := cmd.Actor.GetApplicationSummaryByNameAndSpace(cmd.RequiredArgs.AppName, cmd.Config.TargetedSpace().GUID)
-	cmd.UI.DisplayWarnings(warnings)
-	if err != nil {
-		return shared.HandleError(err)
-	}
-
 	cmd.UI.DisplayTextWithFlavor("Sshing into app {{.AppName}} in org {{.OrgName}} / space {{.SpaceName}} as {{.Username}}...", map[string]interface{}{
 		"AppName":   cmd.RequiredArgs.AppName,
 		"OrgName":   cmd.Config.TargetedOrganization().Name,
@@ -93,100 +88,19 @@ func (cmd V3SSHCommand) Execute(args []string) error {
 		"Username":  user.Name,
 	})
 
-	var processGUID string
-	for _, process := range summary.Processes {
-		if process.Type == cmd.ProcessType {
-			processGUID = process.GUID
-		}
-	}
-
-	if processGUID == "" {
-		return errors.New("process does not exist")
-	}
-
 	sshInfo, err := cmd.V2SSHActor.GetSSHInfo()
 	if err != nil {
 		return shared.HandleError(err)
 	}
 
-	secureShell := sshcmd.NewSecureShell(
-		sshcmd.DefaultSecureDialer(),
-		sshterminal.DefaultHelper(),
-		sshcmd.DefaultListenerFactory(),
-		30*time.Second,
-		summary.State,
-		processGUID,
-		true,
-		sshInfo.SSHHostKeyFingerprint,
-		sshInfo.SSHEndpoint,
-		sshInfo.SSHPasscode,
+	return cmd.Actor.ExecuteSecureShellByAppNameAndSpace(
+		cmd.RequiredArgs.AppName,
+		cmd.Config.TargetedSpace().GUID,
+		cmd.ProcessType,
+		cmd.ProcessIndex,
+		sshInfo,
+		cmd.UI.GetIn(),
+		cmd.UI.GetOut(),
+		cmd.UI.GetErr(),
 	)
-
-	var command []string
-	if cmd.Command != "" {
-		command = strings.Split(cmd.Command, " ")
-	}
-
-	opts := sshoptions.SSHOptions{
-		AppName:             cmd.RequiredArgs.AppName,
-		Command:             command,
-		Index:               uint(cmd.ProcessIndex),
-		SkipHostValidation:  cmd.SkipHostValidation,
-		SkipRemoteExecution: cmd.SkipRemoteExecution,
-	}
-
-	switch {
-	case cmd.DisablePseudoTTY:
-		opts.TerminalRequest = sshoptions.RequestTTYNo
-	case cmd.ForcePseudoTTY:
-		opts.TerminalRequest = sshoptions.RequestTTYForce
-	case cmd.RequestPseudoTTY:
-		opts.TerminalRequest = sshoptions.RequestTTYYes
-	default:
-		opts.TerminalRequest = sshoptions.RequestTTYAuto
-	}
-
-	if len(cmd.Forward) > 0 {
-		for _, arg := range cmd.Forward {
-			forwardSpec, err := opts.ParseLocalForwardingSpec(arg)
-			if err != nil {
-				return err
-			}
-			opts.ForwardSpecs = append(opts.ForwardSpecs, *forwardSpec)
-		}
-	}
-
-	err = secureShell.Connect(&opts)
-	if err != nil {
-		return errors.New("Error opening SSH connection: " + err.Error())
-	}
-	defer secureShell.Close()
-
-	err = secureShell.LocalPortForward()
-	if err != nil {
-		return errors.New("Error forwarding port: " + err.Error())
-	}
-
-	if opts.SkipRemoteExecution {
-		err = secureShell.Wait()
-	} else {
-		err = secureShell.InteractiveSession()
-	}
-
-	if err != nil {
-		if exitError, ok := err.(*ssh.ExitError); ok {
-			exitStatus := exitError.ExitStatus()
-			if sig := exitError.Signal(); sig != "" {
-				cmd.UI.DisplayText("Process terminated by signal: {{.Signal}}. Exited with {{.ExitCode}}", map[string]interface{}{
-					"Signal":   sig,
-					"ExitCode": exitStatus,
-				})
-			}
-			os.Exit(exitStatus)
-		} else {
-			return errors.New("Error: " + err.Error())
-		}
-	}
-
-	return nil
 }

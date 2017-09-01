@@ -8,6 +8,7 @@ package ui
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
@@ -62,7 +63,7 @@ type TranslatableError interface {
 // UI is interface to interact with the user
 type UI struct {
 	// In is the input buffer
-	In io.Reader
+	In io.ReadCloser
 	// Out is the output buffer
 	Out io.Writer
 	// Err is the error buffer
@@ -113,7 +114,7 @@ func NewTestUI(in io.Reader, out io.Writer, err io.Writer) *UI {
 	}
 
 	return &UI{
-		In:               in,
+		In:               ioutil.NopCloser(in),
 		Out:              out,
 		Err:              err,
 		colorEnabled:     configv3.ColorDisabled,
@@ -123,6 +124,10 @@ func NewTestUI(in io.Reader, out io.Writer, err io.Writer) *UI {
 		TimezoneLocation: time.UTC,
 	}
 }
+
+func (ui *UI) GetIn() io.ReadCloser { return ui.In }
+func (ui *UI) GetOut() io.Writer    { return ui.Out }
+func (ui *UI) GetErr() io.Writer    { return ui.Err }
 
 // DisplayBoolPrompt outputs the prompt and waits for user input. It only
 // allows for a boolean response. A default boolean response can be set with
