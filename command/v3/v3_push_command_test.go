@@ -154,7 +154,7 @@ var _ = Describe("v3-push Command", func() {
 
 				BeforeEach(func() {
 					expectedErr = errors.New("I am an error")
-					fakeActor.CreateApplicationByNameAndSpaceReturns(v3action.Application{}, v3action.Warnings{"I am a warning", "I am also a warning"}, expectedErr)
+					fakeActor.CreateApplicationInSpaceReturns(v3action.Application{}, v3action.Warnings{"I am a warning", "I am also a warning"}, expectedErr)
 				})
 
 				It("displays the warnings and error", func() {
@@ -168,16 +168,19 @@ var _ = Describe("v3-push Command", func() {
 
 			Context("when creating the application does not error", func() {
 				BeforeEach(func() {
-					fakeActor.CreateApplicationByNameAndSpaceReturns(v3action.Application{Name: "some-app", GUID: "some-app-guid"}, v3action.Warnings{"I am a warning", "I am also a warning"}, nil)
+					fakeActor.CreateApplicationInSpaceReturns(v3action.Application{Name: "some-app", GUID: "some-app-guid"}, v3action.Warnings{"I am a warning", "I am also a warning"}, nil)
 				})
 
 				It("calls CreateApplication", func() {
-					Expect(fakeActor.CreateApplicationByNameAndSpaceCallCount()).To(Equal(1), "Expected CreateApplicationByNameAndSpace to be called once")
-					createApplicationInput := fakeActor.CreateApplicationByNameAndSpaceArgsForCall(0)
-					Expect(createApplicationInput).To(Equal(v3action.CreateApplicationInput{
-						AppName:   "some-app",
-						SpaceGUID: "some-space-guid",
+					Expect(fakeActor.CreateApplicationInSpaceCallCount()).To(Equal(1), "Expected CreateApplicationInSpace to be called once")
+					createApp, createSpaceGUID := fakeActor.CreateApplicationInSpaceArgsForCall(0)
+					Expect(createApp).To(Equal(v3action.Application{
+						Name: "some-app",
+						Lifecycle: v3action.AppLifecycle{
+							Type: "buildpack",
+						},
 					}))
+					Expect(createSpaceGUID).To(Equal("some-space-guid"))
 				})
 
 				Context("when creating the package fails", func() {
@@ -412,13 +415,18 @@ var _ = Describe("v3-push Command", func() {
 									})
 
 									It("creates the app with the specified buildpack and prints the buildpack name in the summary", func() {
-										Expect(fakeActor.CreateApplicationByNameAndSpaceCallCount()).To(Equal(1), "Expected CreateApplicationByNameAndSpace to be called once")
-										createApplicationInput := fakeActor.CreateApplicationByNameAndSpaceArgsForCall(0)
-										Expect(createApplicationInput).To(Equal(v3action.CreateApplicationInput{
-											AppName:    "some-app",
-											SpaceGUID:  "some-space-guid",
-											Buildpacks: []string{"some-buildpack"},
+										Expect(fakeActor.CreateApplicationInSpaceCallCount()).To(Equal(1), "Expected CreateApplicationInSpace to be called once")
+										createApp, createSpaceGUID := fakeActor.CreateApplicationInSpaceArgsForCall(0)
+										Expect(createApp).To(Equal(v3action.Application{
+											Name: "some-app",
+											Lifecycle: v3action.AppLifecycle{
+												Type: "buildpack",
+												Data: v3action.AppLifecycleData{
+													Buildpacks: []string{"some-buildpack"},
+												},
+											},
 										}))
+										Expect(createSpaceGUID).To(Equal("some-space-guid"))
 									})
 								})
 
@@ -675,7 +683,7 @@ var _ = Describe("v3-push Command", func() {
 			})
 
 			It("updates the application", func() {
-				Expect(fakeActor.CreateApplicationByNameAndSpaceCallCount()).To(Equal(0))
+				Expect(fakeActor.CreateApplicationInSpaceCallCount()).To(Equal(0))
 				Expect(fakeActor.UpdateApplicationCallCount()).To(Equal(1))
 			})
 
@@ -698,9 +706,16 @@ var _ = Describe("v3-push Command", func() {
 				})
 
 				It("does not update the buildpack", func() {
-					appGUIDArg, buildpackArg := fakeActor.UpdateApplicationArgsForCall(0)
-					Expect(appGUIDArg).To(Equal("some-app-guid"))
-					Expect(buildpackArg).To(BeEmpty())
+					appArg := fakeActor.UpdateApplicationArgsForCall(0)
+					Expect(appArg).To(Equal(v3action.Application{
+						GUID: "some-app-guid",
+						Lifecycle: v3action.AppLifecycle{
+							Type: "buildpack",
+							Data: v3action.AppLifecycleData{
+								Buildpacks: []string{},
+							},
+						},
+					}))
 				})
 			})
 
@@ -710,10 +725,16 @@ var _ = Describe("v3-push Command", func() {
 				})
 
 				It("updates the buildpack", func() {
-					Expect(fakeActor.UpdateApplicationCallCount()).To(Equal(1))
-					appGUIDArg, buildpackArg := fakeActor.UpdateApplicationArgsForCall(0)
-					Expect(appGUIDArg).To(Equal("some-app-guid"))
-					Expect(buildpackArg).To(ConsistOf("some-buildpack"))
+					appArg := fakeActor.UpdateApplicationArgsForCall(0)
+					Expect(appArg).To(Equal(v3action.Application{
+						GUID: "some-app-guid",
+						Lifecycle: v3action.AppLifecycle{
+							Type: "buildpack",
+							Data: v3action.AppLifecycleData{
+								Buildpacks: []string{"some-buildpack"},
+							},
+						},
+					}))
 				})
 			})
 
@@ -723,10 +744,16 @@ var _ = Describe("v3-push Command", func() {
 				})
 
 				It("updates the buildpacks", func() {
-					Expect(fakeActor.UpdateApplicationCallCount()).To(Equal(1))
-					appGUIDArg, buildpackArg := fakeActor.UpdateApplicationArgsForCall(0)
-					Expect(appGUIDArg).To(Equal("some-app-guid"))
-					Expect(buildpackArg).To(ConsistOf("some-buildpack-1", "some-buildpack-2"))
+					appArg := fakeActor.UpdateApplicationArgsForCall(0)
+					Expect(appArg).To(Equal(v3action.Application{
+						GUID: "some-app-guid",
+						Lifecycle: v3action.AppLifecycle{
+							Type: "buildpack",
+							Data: v3action.AppLifecycleData{
+								Buildpacks: []string{"some-buildpack-1", "some-buildpack-2"},
+							},
+						},
+					}))
 				})
 
 				Context("when default was also provided", func() {

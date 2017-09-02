@@ -25,7 +25,7 @@ type V2PushActor interface {
 type V3PushActor interface {
 	CloudControllerAPIVersion() string
 	CreateAndUploadBitsPackageByApplicationNameAndSpace(appName string, spaceGUID string, bitsPath string) (v3action.Package, v3action.Warnings, error)
-	CreateApplicationByNameAndSpace(createApplicationInput v3action.CreateApplicationInput) (v3action.Application, v3action.Warnings, error)
+	CreateApplicationInSpace(app v3action.Application, spaceGUID string) (v3action.Application, v3action.Warnings, error)
 	GetApplicationByNameAndSpace(appName string, spaceGUID string) (v3action.Application, v3action.Warnings, error)
 	GetApplicationSummaryByNameAndSpace(appName string, spaceGUID string) (v3action.ApplicationSummary, v3action.Warnings, error)
 	GetStreamingLogsForApplicationByNameAndSpace(appName string, spaceGUID string, client v3action.NOAAClient) (<-chan *v3action.LogMessage, <-chan error, v3action.Warnings, error)
@@ -34,7 +34,7 @@ type V3PushActor interface {
 	StagePackage(packageGUID string, appName string) (<-chan v3action.Droplet, <-chan v3action.Warnings, <-chan error)
 	StartApplication(appGUID string) (v3action.Application, v3action.Warnings, error)
 	StopApplication(appGUID string) (v3action.Warnings, error)
-	UpdateApplication(appGUID string, buildpacks []string) (v3action.Application, v3action.Warnings, error)
+	UpdateApplication(app v3action.Application) (v3action.Application, v3action.Warnings, error)
 }
 
 type V3PushCommand struct {
@@ -42,7 +42,8 @@ type V3PushCommand struct {
 	NoRoute             bool                        `long:"no-route" description:"Do not map a route to this app"`
 	Buildpacks          []string                    `short:"b" description:"Custom buildpack by name (e.g. my-buildpack) or Git URL (e.g. 'https://github.com/cloudfoundry/java-buildpack.git') or Git URL with a branch or tag (e.g. 'https://github.com/cloudfoundry/java-buildpack.git#v3.3.0' for 'v3.3.0' tag). To use built-in buildpacks only, specify 'default' or 'null'"`
 	AppPath             flag.PathWithExistenceCheck `short:"p" description:"Path to app directory or to a zip file of the contents of the app directory"`
-	usage               interface{}                 `usage:"cf v3-push APP_NAME [-b BUILDPACK]... [-p APP_PATH] [--no-route]"`
+	DockerImage         string                      `long:"docker-image" short:"o" description:"Docker image to use (e.g. user/docker-image-name)"`
+	usage               interface{}                 `usage:"cf v3-push APP_NAME [-b BUILDPACK]... [-p APP_PATH] [--no-route]\n   cf v3-push APP_NAME --docker-image [REGISTRY_HOST:PORT/]IMAGE[:TAG]"`
 	envCFStagingTimeout interface{}                 `environmentName:"CF_STAGING_TIMEOUT" environmentDescription:"Max wait time for buildpack staging, in minutes" environmentDefault:"15"`
 	envCFStartupTimeout interface{}                 `environmentName:"CF_STARTUP_TIMEOUT" environmentDescription:"Max wait time for app instance startup, in minutes" environmentDefault:"5"`
 
@@ -103,6 +104,10 @@ func (cmd V3PushCommand) Execute(args []string) error {
 	user, err := cmd.Config.CurrentUser()
 	if err != nil {
 		return err
+	}
+
+	if !verifyBuildpacks(cmd.Buildpacks) {
+		return translatableerror.ConflictingBuildpacksError{}
 	}
 
 	var app v3action.Application
@@ -179,27 +184,36 @@ func (cmd V3PushCommand) Execute(args []string) error {
 				AppName:    cmd.RequiredArgs.AppName,
 				BinaryName: cmd.Config.BinaryName(),
 			}
-		} else {
-			return shared.HandleError(err)
 		}
+
+		return shared.HandleError(err)
 	}
 
 	return cmd.AppSummaryDisplayer.DisplayAppInfo()
 }
 
 func (cmd V3PushCommand) createApplication(userName string) (v3action.Application, error) {
-	createInput := v3action.CreateApplicationInput{
-		AppName:   cmd.RequiredArgs.AppName,
-		SpaceGUID: cmd.Config.TargetedSpace().GUID,
+	appToCreate := v3action.Application{
+		Name: cmd.RequiredArgs.AppName,
 	}
 
-	if verifyBuildpacks(cmd.Buildpacks) {
-		createInput.Buildpacks = cmd.Buildpacks
+	if cmd.DockerImage != "" {
+		// appToCreate.Lifecycle = v3action.AppLifecycle{
+		// 	Type: "docker", // TODO: change to constant
+		// }
 	} else {
-		return v3action.Application{}, translatableerror.ConflictingBuildpacksError{}
+		appToCreate.Lifecycle = v3action.AppLifecycle{
+			Type: "buildpack", // TODO: change to constant
+			Data: v3action.AppLifecycleData{
+				Buildpacks: cmd.Buildpacks,
+			},
+		}
 	}
 
-	app, warnings, err := cmd.Actor.CreateApplicationByNameAndSpace(createInput)
+	app, warnings, err := cmd.Actor.CreateApplicationInSpace(
+		appToCreate,
+		cmd.Config.TargetedSpace().GUID,
+	)
 	cmd.UI.DisplayWarnings(warnings)
 	if err != nil {
 		return v3action.Application{}, err
@@ -228,8 +242,6 @@ func (cmd V3PushCommand) getApplication() (v3action.Application, error) {
 }
 
 func (cmd V3PushCommand) updateApplication(userName string, appGUID string) (v3action.Application, error) {
-	var buildpacks []string
-
 	cmd.UI.DisplayTextWithFlavor("Updating app {{.AppName}} in org {{.CurrentOrg}} / space {{.CurrentSpace}} as {{.CurrentUser}}...", map[string]interface{}{
 		"AppName":      cmd.RequiredArgs.AppName,
 		"CurrentSpace": cmd.Config.TargetedSpace().Name,
@@ -237,13 +249,25 @@ func (cmd V3PushCommand) updateApplication(userName string, appGUID string) (v3a
 		"CurrentUser":  userName,
 	})
 
-	if verifyBuildpacks(cmd.Buildpacks) {
-		buildpacks = cmd.Buildpacks
-	} else {
-		return v3action.Application{}, translatableerror.ConflictingBuildpacksError{}
+	appToUpdate := v3action.Application{
+		GUID: appGUID,
 	}
 
-	app, warnings, err := cmd.Actor.UpdateApplication(appGUID, buildpacks)
+	if cmd.DockerImage != "" {
+		// appToUpdate.Lifecycle = v3action.AppLifecycle{
+		// 	Type: "docker", // TODO: change to constant
+		// }
+	} else {
+		appToUpdate.Lifecycle = v3action.AppLifecycle{
+			Type: "buildpack", // TODO: change to constant
+			Data: v3action.AppLifecycleData{
+				Buildpacks: cmd.Buildpacks,
+			},
+		}
+	}
+
+	// TODO: lifecycle type
+	app, warnings, err := cmd.Actor.UpdateApplication(appToUpdate)
 	cmd.UI.DisplayWarnings(warnings)
 	if err != nil {
 		return v3action.Application{}, err
