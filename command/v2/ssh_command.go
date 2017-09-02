@@ -1,12 +1,16 @@
 package v2
 
 import (
-	"os"
-
-	"code.cloudfoundry.org/cli/cf/cmd"
+	"code.cloudfoundry.org/cli/actor/sharedaction"
+	"code.cloudfoundry.org/cli/actor/v2action"
 	"code.cloudfoundry.org/cli/command"
 	"code.cloudfoundry.org/cli/command/flag"
+	"code.cloudfoundry.org/cli/command/v2/shared"
 )
+
+type SSHActor interface {
+	RunSecureShell(sshOptions v2action.SSHOptions, ui v2action.UI) error
+}
 
 type SSHCommand struct {
 	RequiredArgs        flag.AppName `positional-args:"yes"`
@@ -20,13 +24,49 @@ type SSHCommand struct {
 	SkipRemoteExecution bool         `long:"skip-remote-execution" short:"N" description:"Do not execute a remote command"`
 	usage               interface{}  `usage:"CF_NAME ssh APP_NAME [-i INDEX] [-c COMMAND]... [-L [BIND_ADDRESS:]PORT:HOST:HOST_PORT] [--skip-host-validation] [--skip-remote-execution] [--disable-pseudo-tty | --force-pseudo-tty | --request-pseudo-tty]"`
 	relatedCommands     interface{}  `related_commands:"allow-space-ssh, enable-ssh, space-ssh-allowed, ssh-code, ssh-enabled"`
+
+	UI          command.UI
+	Config      command.Config
+	SharedActor command.SharedActor
+	Actor       SSHActor
 }
 
-func (SSHCommand) Setup(config command.Config, ui command.UI) error {
+func (cmd *SSHCommand) Setup(config command.Config, ui command.UI) error {
+	cmd.UI = ui
+	cmd.Config = config
+	cmd.SharedActor = sharedaction.NewActor()
+
+	ccClient, uaaClient, err := shared.NewClients(config, ui, true)
+	if err != nil {
+		return err
+	}
+	cmd.Actor = v2action.NewActor(ccClient, uaaClient, config)
+
 	return nil
 }
 
-func (SSHCommand) Execute(args []string) error {
-	cmd.Main(os.Getenv("CF_TRACE"), os.Args)
-	return nil
+func (cmd SSHCommand) Execute([]string) error {
+	err := cmd.SharedActor.CheckTarget(cmd.Config, true, true)
+	if err != nil {
+		return shared.HandleError(err)
+	}
+
+	user, err := cmd.Config.CurrentUser()
+	if err != nil {
+		return shared.HandleError(err)
+	}
+
+	cmd.UI.DisplayTextWithFlavor("Sshing into app {{.AppName}} in org {{.OrgName}} / space {{.SpaceName}} as {{.Username}}...", map[string]interface{}{
+		"AppName":   cmd.RequiredArgs.AppName,
+		"OrgName":   cmd.Config.TargetedOrganization().Name,
+		"SpaceName": cmd.Config.TargetedSpace().Name,
+		"Username":  user.Name,
+	})
+
+	sshOptions := v2action.SSHOptions{
+		AppName:   cmd.RequiredArgs.AppName,
+		SpaceGUID: cmd.Config.TargetedOrganization().GUID,
+		Index:     cmd.AppInstanceIndex,
+	}
+	return cmd.Actor.RunSecureShell(sshOptions, cmd.UI)
 }

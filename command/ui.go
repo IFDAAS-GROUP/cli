@@ -23,10 +23,13 @@ type UI interface {
 	DisplayOK()
 	DisplayTableWithHeader(prefix string, table [][]string, padding int)
 	DisplayText(template string, data ...map[string]interface{})
-	DisplayTextWithFlavor(text string, keys ...map[string]interface{})
 	DisplayTextWithBold(text string, keys ...map[string]interface{})
+	DisplayTextWithFlavor(text string, keys ...map[string]interface{})
 	DisplayWarning(formattedString string, keys ...map[string]interface{})
 	DisplayWarnings(warnings []string)
+	GetErr() io.Writer
+	GetIn() io.Reader
+	GetOut() io.Writer
 	RequestLoggerFileWriter(filePaths []string) *ui.RequestLoggerFileWriter
 	RequestLoggerTerminalDisplay() *ui.RequestLoggerTerminalDisplay
 	TranslateText(template string, data ...map[string]interface{}) string

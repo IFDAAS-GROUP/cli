@@ -83,6 +83,8 @@ type Warnings []string
 // Client is a client that can be used to talk to a Cloud Controller's V2
 // Endpoints.
 type Client struct {
+	appSSHEndpoint            string
+	appSSHHostKeyFingerprint  string
 	authorizationEndpoint     string
 	cloudControllerAPIVersion string
 	cloudControllerURL        string

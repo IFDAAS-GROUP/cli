@@ -48,6 +48,8 @@ func (client *Client) TargetCF(settings TargetSettings) (Warnings, error) {
 		return warnings, err
 	}
 
+	client.appSSHEndpoint = info.AppSSHEndpoint
+	client.appSSHHostKeyFingerprint = info.AppSSHHostKeyFingerprint
 	client.authorizationEndpoint = info.AuthorizationEndpoint
 	client.cloudControllerAPIVersion = info.APIVersion
 	client.dopplerEndpoint = info.DopplerEndpoint

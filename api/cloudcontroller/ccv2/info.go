@@ -9,6 +9,8 @@ import (
 // APIInformation represents the information returned back from /v2/info
 type APIInformation struct {
 	APIVersion                   string `json:"api_version"`
+	AppSSHEndpoint               string `json:"app_ssh_endpoint"`
+	AppSSHHostKeyFingerprint     string `json:"app_ssh_host_key_fingerprint"`
 	AuthorizationEndpoint        string `json:"authorization_endpoint"`
 	DopplerEndpoint              string `json:"doppler_logging_endpoint"`
 	MinCLIVersion                string `json:"min_cli_version"`
@@ -27,6 +29,14 @@ func (client *Client) API() string {
 // Controller.
 func (client *Client) APIVersion() string {
 	return client.cloudControllerAPIVersion
+}
+
+func (client *Client) AppSSHEndpoint() string {
+	return client.appSSHEndpoint
+}
+
+func (client *Client) AppSSHHostKeyFingerprint() string {
+	return client.appSSHHostKeyFingerprint
 }
 
 // AuthorizationEndpoint returns the authorization endpoint for the targeted

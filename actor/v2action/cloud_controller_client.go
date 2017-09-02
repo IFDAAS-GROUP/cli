@@ -58,6 +58,8 @@ type CloudControllerClient interface {
 
 	API() string
 	APIVersion() string
+	AppSSHEndpoint() string
+	AppSSHHostKeyFingerprint() string
 	AuthorizationEndpoint() string
 	DopplerEndpoint() string
 	MinCLIVersion() string
