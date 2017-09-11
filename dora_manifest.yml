@@ -1,0 +1,13 @@
+applications:
+- name: dora
+  instances: 1
+  memory: 32M
+  disk_quota: 1024M
+  routes:
+  - route: alexdora.bosh-lite.com
+  env:
+    BAR: blah
+    all: alligator
+    foo: "1"
+    zebra: zello
+  stack: cflinuxfs2
