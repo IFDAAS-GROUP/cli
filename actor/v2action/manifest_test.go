@@ -82,8 +82,14 @@ var _ = Describe("Manifest Actions", func() {
 						Value: 10,
 						IsSet: true,
 					},
-					DiskQuota: 1024,
-					Memory:    200,
+					DiskQuota: types.NullByteSize{
+						Value: 1024,
+						IsSet: true,
+					},
+					Memory: types.NullByteSize{
+						Value: 200,
+						IsSet: true,
+					},
 					StackGUID: "some-stack-guid",
 				}
 

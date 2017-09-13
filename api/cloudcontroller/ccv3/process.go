@@ -16,8 +16,8 @@ type Process struct {
 	Type        string             `json:"type"`
 	HealthCheck ProcessHealthCheck `json:"health_check"`
 	Instances   types.NullInt      `json:"instances"`
-	MemoryInMB  types.NullUint64   `json:"memory_in_mb"`
-	DiskInMB    types.NullUint64   `json:"disk_in_mb"`
+	MemoryInMB  types.NullByteSize `json:"memory_in_mb"`
+	DiskInMB    types.NullByteSize `json:"disk_in_mb"`
 }
 
 type ProcessHealthCheck struct {

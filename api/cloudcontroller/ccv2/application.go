@@ -54,7 +54,7 @@ type Application struct {
 	DetectedStartCommand types.FilteredString
 
 	// DiskQuota is the disk given to each instance, in megabytes.
-	DiskQuota uint64
+	DiskQuota types.NullByteSize
 
 	// DockerCredentials is the authentication information for the provided
 	// DockerImage.
@@ -83,7 +83,7 @@ type Application struct {
 	Instances types.NullInt
 
 	// Memory is the memory given to each instance, in megabytes.
-	Memory uint64
+	Memory types.NullByteSize
 
 	// Name is the name given to the application.
 	Name string
@@ -141,13 +141,13 @@ func (application Application) MarshalJSON() ([]byte, error) {
 		StackGUID               string                     `json:"stack_guid,omitempty"`
 		State                   ApplicationState           `json:"state,omitempty"`
 	}{
-		DiskQuota:               application.DiskQuota,
+		DiskQuota:               application.DiskQuota.Uint64(),
 		DockerImage:             application.DockerImage,
 		EnvironmentVariables:    application.EnvironmentVariables,
 		HealthCheckHTTPEndpoint: application.HealthCheckHTTPEndpoint,
 		HealthCheckTimeout:      application.HealthCheckTimeout,
 		HealthCheckType:         application.HealthCheckType,
-		Memory:                  application.Memory,
+		Memory:                  application.Memory.Uint64(),
 		Name:                    application.Name,
 		SpaceGUID:               application.SpaceGUID,
 		StackGUID:               application.StackGUID,
@@ -181,13 +181,13 @@ func (application *Application) UnmarshalJSON(data []byte) error {
 	var ccApp struct {
 		Metadata internal.Metadata `json:"metadata"`
 		Entity   struct {
-			Buildpack            string            `json:"buildpack"`
-			Command              string            `json:"command"`
-			DetectedBuildpack    string            `json:"detected_buildpack"`
-			DetectedStartCommand string            `json:"detected_start_command"`
-			DiskQuota            uint64            `json:"disk_quota"`
-			DockerImage          string            `json:"docker_image"`
-			DockerCredentials    DockerCredentials `json:"docker_credentials"`
+			Buildpack            string             `json:"buildpack"`
+			Command              string             `json:"command"`
+			DetectedBuildpack    string             `json:"detected_buildpack"`
+			DetectedStartCommand string             `json:"detected_start_command"`
+			DiskQuota            types.NullByteSize `json:"disk_quota"`
+			DockerImage          string             `json:"docker_image"`
+			DockerCredentials    DockerCredentials  `json:"docker_credentials"`
 			// EnvironmentVariables' values can be any type, so we must accept
 			// interface{}, but we convert to string.
 			EnvironmentVariables     map[string]interface{} `json:"environment_json"`
@@ -195,7 +195,7 @@ func (application *Application) UnmarshalJSON(data []byte) error {
 			HealthCheckTimeout       int                    `json:"health_check_timeout"`
 			HealthCheckType          string                 `json:"health_check_type"`
 			Instances                json.Number            `json:"instances"`
-			Memory                   uint64                 `json:"memory"`
+			Memory                   types.NullByteSize     `json:"memory"`
 			Name                     string                 `json:"name"`
 			PackageState             string                 `json:"package_state"`
 			PackageUpdatedAt         *time.Time             `json:"package_updated_at"`

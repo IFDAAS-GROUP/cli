@@ -9,7 +9,6 @@ import (
 	"code.cloudfoundry.org/cli/actor/v3action"
 	"code.cloudfoundry.org/cli/command"
 	sharedV2 "code.cloudfoundry.org/cli/command/v2/shared"
-	"github.com/cloudfoundry/bytefmt"
 )
 
 type AppSummaryDisplayer struct {
@@ -137,12 +136,12 @@ func (display AppSummaryDisplayer) DisplayAppInstancesTable(processSummary v3act
 			display.appInstanceDate(instance.StartTime()),
 			fmt.Sprintf("%.1f%%", instance.CPU*100),
 			display.UI.TranslateText("{{.MemUsage}} of {{.MemQuota}}", map[string]interface{}{
-				"MemUsage": bytefmt.ByteSize(instance.MemoryUsage),
-				"MemQuota": bytefmt.ByteSize(instance.MemoryQuota),
+				"MemUsage": instance.MemoryUsage.String(),
+				"MemQuota": instance.MemoryQuota.String(),
 			}),
 			display.UI.TranslateText("{{.DiskUsage}} of {{.DiskQuota}}", map[string]interface{}{
-				"DiskUsage": bytefmt.ByteSize(instance.DiskUsage),
-				"DiskQuota": bytefmt.ByteSize(instance.DiskQuota),
+				"DiskUsage": instance.DiskUsage.String(),
+				"DiskQuota": instance.DiskQuota.String(),
 			}),
 		})
 	}

@@ -7,6 +7,7 @@ import (
 	"code.cloudfoundry.org/cli/api/cloudcontroller"
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccerror"
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccv3/internal"
+	"code.cloudfoundry.org/cli/types"
 )
 
 type Instance struct {
@@ -14,10 +15,10 @@ type Instance struct {
 	State       string
 	Uptime      int
 	CPU         float64
-	MemoryUsage uint64
-	MemoryQuota uint64
-	DiskUsage   uint64
-	DiskQuota   uint64
+	MemoryUsage types.NullByteSize
+	MemoryQuota types.NullByteSize
+	DiskUsage   types.NullByteSize
+	DiskQuota   types.NullByteSize
 }
 
 // UnmarshalJSON helps unmarshal a V3 Cloud Controller Instance response.
@@ -25,14 +26,14 @@ func (instance *Instance) UnmarshalJSON(data []byte) error {
 	var inputInstance struct {
 		State string `json:"state"`
 		Usage struct {
-			CPU  float64 `json:"cpu"`
-			Mem  uint64  `json:"mem"`
-			Disk uint64  `json:"disk"`
+			CPU  float64            `json:"cpu"`
+			Mem  types.NullByteSize `json:"mem"`
+			Disk types.NullByteSize `json:"disk"`
 		} `json:"usage"`
-		MemQuota  uint64 `json:"mem_quota"`
-		DiskQuota uint64 `json:"disk_quota"`
-		Index     int    `json:"index"`
-		Uptime    int    `json:"uptime"`
+		MemQuota  types.NullByteSize `json:"mem_quota"`
+		DiskQuota types.NullByteSize `json:"disk_quota"`
+		Index     int                `json:"index"`
+		Uptime    int                `json:"uptime"`
 	}
 	if err := json.Unmarshal(data, &inputInstance); err != nil {
 		return err
@@ -41,10 +42,15 @@ func (instance *Instance) UnmarshalJSON(data []byte) error {
 	instance.State = inputInstance.State
 	instance.CPU = inputInstance.Usage.CPU
 	instance.MemoryUsage = inputInstance.Usage.Mem
+	instance.MemoryUsage.IsBytes = true
+
 	instance.DiskUsage = inputInstance.Usage.Disk
+	instance.DiskUsage.IsBytes = true
 
 	instance.MemoryQuota = inputInstance.MemQuota
+	instance.MemoryQuota.IsBytes = true
 	instance.DiskQuota = inputInstance.DiskQuota
+	instance.DiskQuota.IsBytes = true
 	instance.Index = inputInstance.Index
 	instance.Uptime = inputInstance.Uptime
 

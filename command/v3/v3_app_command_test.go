@@ -357,19 +357,19 @@ var _ = Describe("v3-app Command", func() {
 							{
 								Process: v3action.Process{
 									Type:       "console",
-									MemoryInMB: types.NullUint64{Value: 128, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 128, IsSet: true},
 								},
 							},
 							{
 								Process: v3action.Process{
 									Type:       "worker",
-									MemoryInMB: types.NullUint64{Value: 64, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 64, IsSet: true},
 								},
 							},
 							{
 								Process: v3action.Process{
 									Type:       constant.ProcessTypeWeb,
-									MemoryInMB: types.NullUint64{Value: 32, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 32, IsSet: true},
 								},
 							},
 						},
@@ -414,21 +414,21 @@ var _ = Describe("v3-app Command", func() {
 							{
 								Process: v3action.Process{
 									Type:       "console",
-									MemoryInMB: types.NullUint64{Value: 128, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 128, IsSet: true},
 								},
 								InstanceDetails: []v3action.Instance{{State: "DOWN"}},
 							},
 							{
 								Process: v3action.Process{
 									Type:       "worker",
-									MemoryInMB: types.NullUint64{Value: 64, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 64, IsSet: true},
 								},
 								InstanceDetails: []v3action.Instance{{State: "DOWN"}},
 							},
 							{
 								Process: v3action.Process{
 									Type:       constant.ProcessTypeWeb,
-									MemoryInMB: types.NullUint64{Value: 32, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 32, IsSet: true},
 								},
 								InstanceDetails: []v3action.Instance{{State: "DOWN"}},
 							},
@@ -476,23 +476,23 @@ var _ = Describe("v3-app Command", func() {
 							{
 								Process: v3action.Process{
 									Type:       "console",
-									MemoryInMB: types.NullUint64{Value: 128, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 128, IsSet: true},
 								},
 								InstanceDetails: []v3action.Instance{},
 							},
 							{
 								Process: v3action.Process{
 									Type:       "worker",
-									MemoryInMB: types.NullUint64{Value: 64, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 64, IsSet: true},
 								},
 								InstanceDetails: []v3action.Instance{
 									v3action.Instance{
 										Index:       0,
 										State:       "DOWN",
-										MemoryUsage: 4000000,
-										DiskUsage:   4000000,
-										MemoryQuota: 67108864,
-										DiskQuota:   8000000,
+										MemoryUsage: types.NullByteSize{Value: 4000000, IsSet: true, IsBytes: true},
+										DiskUsage:   types.NullByteSize{Value: 4000000, IsSet: true, IsBytes: true},
+										MemoryQuota: types.NullByteSize{Value: 67108864, IsSet: true, IsBytes: true},
+										DiskQuota:   types.NullByteSize{Value: 8000000, IsSet: true, IsBytes: true},
 										Uptime:      int(time.Now().Sub(time.Unix(1371859200, 0)).Seconds()),
 									},
 								},
@@ -500,34 +500,34 @@ var _ = Describe("v3-app Command", func() {
 							{
 								Process: v3action.Process{
 									Type:       constant.ProcessTypeWeb,
-									MemoryInMB: types.NullUint64{Value: 32, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 32, IsSet: true},
 								},
 								InstanceDetails: []v3action.Instance{
 									v3action.Instance{
 										Index:       0,
 										State:       "RUNNING",
-										MemoryUsage: 1000000,
-										DiskUsage:   1000000,
-										MemoryQuota: 33554432,
-										DiskQuota:   2000000,
+										MemoryUsage: types.NullByteSize{Value: 1000000, IsSet: true, IsBytes: true},
+										DiskUsage:   types.NullByteSize{Value: 1000000, IsSet: true, IsBytes: true},
+										MemoryQuota: types.NullByteSize{Value: 33554432, IsSet: true, IsBytes: true},
+										DiskQuota:   types.NullByteSize{Value: 2000000, IsSet: true, IsBytes: true},
 										Uptime:      int(time.Now().Sub(time.Unix(267321600, 0)).Seconds()),
 									},
 									v3action.Instance{
 										Index:       1,
 										State:       "RUNNING",
-										MemoryUsage: 2000000,
-										DiskUsage:   2000000,
-										MemoryQuota: 33554432,
-										DiskQuota:   4000000,
+										MemoryUsage: types.NullByteSize{Value: 2000000, IsSet: true, IsBytes: true},
+										DiskUsage:   types.NullByteSize{Value: 2000000, IsSet: true, IsBytes: true},
+										MemoryQuota: types.NullByteSize{Value: 33554432, IsSet: true, IsBytes: true},
+										DiskQuota:   types.NullByteSize{Value: 4000000, IsSet: true, IsBytes: true},
 										Uptime:      int(time.Now().Sub(time.Unix(330480000, 0)).Seconds()),
 									},
 									v3action.Instance{
 										Index:       2,
 										State:       "RUNNING",
-										MemoryUsage: 3000000,
-										DiskUsage:   3000000,
-										MemoryQuota: 33554432,
-										DiskQuota:   6000000,
+										MemoryUsage: types.NullByteSize{Value: 3000000, IsSet: true, IsBytes: true},
+										DiskUsage:   types.NullByteSize{Value: 3000000, IsSet: true, IsBytes: true},
+										MemoryQuota: types.NullByteSize{Value: 33554432, IsSet: true, IsBytes: true},
+										DiskQuota:   types.NullByteSize{Value: 6000000, IsSet: true, IsBytes: true},
 										Uptime:      int(time.Now().Sub(time.Unix(1277164800, 0)).Seconds()),
 									},
 								},

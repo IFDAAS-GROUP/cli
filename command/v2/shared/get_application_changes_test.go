@@ -241,9 +241,9 @@ var _ = Describe("GetApplicationChanges", func() {
 		})
 
 		DescribeTable("non-empty values",
-			func(existingDiskQuota int, newDiskQuota int, currentValue string, newValue string) {
-				appConfig.CurrentApplication.DiskQuota = uint64(existingDiskQuota)
-				appConfig.DesiredApplication.DiskQuota = uint64(newDiskQuota)
+			func(existingDiskQuota types.NullByteSize, newDiskQuota types.NullByteSize, currentValue string, newValue string) {
+				appConfig.CurrentApplication.DiskQuota = existingDiskQuota
+				appConfig.DesiredApplication.DiskQuota = newDiskQuota
 
 				changes = GetApplicationChanges(appConfig)
 
@@ -253,9 +253,18 @@ var _ = Describe("GetApplicationChanges", func() {
 					NewValue:     newValue,
 				}))
 			},
-			Entry("new app with disk_quota specified", 0, 200, "", "200M"),
-			Entry("existing disk_quota with no disk_quota specified", 100, 0, "100M", "0"),
-			Entry("existing disk_quota with new disk_quota specified", 100, 200, "100M", "200M"),
+			Entry("new app with disk_quota specified",
+				types.NullByteSize{IsSet: false},
+				types.NullByteSize{Value: 200, IsSet: true},
+				"", "200M"),
+			Entry("existing disk_quota with no disk_quota specified",
+				types.NullByteSize{Value: 100, IsSet: true},
+				types.NullByteSize{Value: 0, IsSet: true},
+				"100M", "0"),
+			Entry("existing disk_quota with new disk_quota specified",
+				types.NullByteSize{Value: 100, IsSet: true},
+				types.NullByteSize{Value: 200, IsSet: true},
+				"100M", "200M"),
 		)
 	})
 
@@ -380,10 +389,9 @@ var _ = Describe("GetApplicationChanges", func() {
 		})
 
 		DescribeTable("non-empty values",
-			func(existingMemory int, newMemory int, currentValue string, newValue string) {
-				appConfig.CurrentApplication.Memory = uint64(existingMemory)
-				appConfig.DesiredApplication.Memory = uint64(newMemory)
-
+			func(existingMemory types.NullByteSize, newMemory types.NullByteSize, currentValue string, newValue string) {
+				appConfig.CurrentApplication.Memory = existingMemory
+				appConfig.DesiredApplication.Memory = newMemory
 				changes = GetApplicationChanges(appConfig)
 
 				Expect(changes[2]).To(Equal(ui.Change{
@@ -392,9 +400,18 @@ var _ = Describe("GetApplicationChanges", func() {
 					NewValue:     newValue,
 				}))
 			},
-			Entry("new app with memory specified", 0, 200, "", "200M"),
-			Entry("existing memory with no memory specified", 100, 0, "100M", "0"),
-			Entry("existing memory with new memory specified", 100, 200, "100M", "200M"),
+			Entry("new app with memory specified",
+				types.NullByteSize{IsSet: false},
+				types.NullByteSize{Value: 200, IsSet: true},
+				"", "200M"),
+			Entry("existing memory with no memory specified",
+				types.NullByteSize{Value: 100, IsSet: true},
+				types.NullByteSize{Value: 0, IsSet: true},
+				"100M", "0"),
+			Entry("existing memory with new memory specified",
+				types.NullByteSize{Value: 100, IsSet: true},
+				types.NullByteSize{Value: 200, IsSet: true},
+				"100M", "200M"),
 		)
 	})
 

@@ -32,8 +32,8 @@ var _ = Describe("Process Actions", func() {
 			passedProcess = Process{
 				Type:       constant.ProcessTypeWeb,
 				Instances:  types.NullInt{Value: 2, IsSet: true},
-				MemoryInMB: types.NullUint64{Value: 100, IsSet: true},
-				DiskInMB:   types.NullUint64{Value: 200, IsSet: true},
+				MemoryInMB: types.NullByteSize{Value: 100, IsSet: true},
+				DiskInMB:   types.NullByteSize{Value: 200, IsSet: true},
 			}
 		})
 

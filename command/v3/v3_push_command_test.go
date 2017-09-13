@@ -700,16 +700,16 @@ var _ = Describe("v3-push Command", func() {
 														{
 															Process: v3action.Process{
 																Type:       "worker",
-																MemoryInMB: types.NullUint64{Value: 64, IsSet: true},
+																MemoryInMB: types.NullByteSize{Value: 64, IsSet: true},
 															},
 															InstanceDetails: []v3action.Instance{
 																v3action.Instance{
 																	Index:       0,
 																	State:       "RUNNING",
-																	MemoryUsage: 4000000,
-																	DiskUsage:   4000000,
-																	MemoryQuota: 67108864,
-																	DiskQuota:   8000000,
+																	MemoryUsage: types.NullByteSize{Value: 4000000, IsSet: true, IsBytes: true},
+																	DiskUsage:   types.NullByteSize{Value: 4000000, IsSet: true, IsBytes: true},
+																	MemoryQuota: types.NullByteSize{Value: 67108864, IsSet: true, IsBytes: true},
+																	DiskQuota:   types.NullByteSize{Value: 8000000, IsSet: true, IsBytes: true},
 																	Uptime:      int(time.Now().Sub(time.Unix(1371859200, 0)).Seconds()),
 																},
 															},

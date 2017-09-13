@@ -45,7 +45,7 @@ var _ = Describe("Application Summary Actions", func() {
 						{
 							GUID:       "some-process-guid",
 							Type:       "some-type",
-							MemoryInMB: types.NullUint64{Value: 32, IsSet: true},
+							MemoryInMB: types.NullByteSize{Value: 32, IsSet: true},
 						},
 					},
 					ccv3.Warnings{"some-process-warning"},
@@ -57,10 +57,10 @@ var _ = Describe("Application Summary Actions", func() {
 						{
 							State:       "RUNNING",
 							CPU:         0.01,
-							MemoryUsage: 1000000,
-							DiskUsage:   2000000,
-							MemoryQuota: 3000000,
-							DiskQuota:   4000000,
+							MemoryUsage: types.NullByteSize{Value: 1000000, IsSet: true, IsBytes: true},
+							DiskUsage:   types.NullByteSize{Value: 2000000, IsSet: true, IsBytes: true},
+							MemoryQuota: types.NullByteSize{Value: 3000000, IsSet: true, IsBytes: true},
+							DiskQuota:   types.NullByteSize{Value: 4000000, IsSet: true, IsBytes: true},
 							Index:       0,
 						},
 					},
@@ -110,17 +110,17 @@ var _ = Describe("Application Summary Actions", func() {
 							{
 								Process: Process{
 									GUID:       "some-process-guid",
-									MemoryInMB: types.NullUint64{Value: 32, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 32, IsSet: true},
 									Type:       "some-type",
 								},
 								InstanceDetails: []Instance{
 									{
 										State:       "RUNNING",
 										CPU:         0.01,
-										MemoryUsage: 1000000,
-										DiskUsage:   2000000,
-										MemoryQuota: 3000000,
-										DiskQuota:   4000000,
+										MemoryUsage: types.NullByteSize{Value: 1000000, IsSet: true, IsBytes: true},
+										DiskUsage:   types.NullByteSize{Value: 2000000, IsSet: true, IsBytes: true},
+										MemoryQuota: types.NullByteSize{Value: 3000000, IsSet: true, IsBytes: true},
+										DiskQuota:   types.NullByteSize{Value: 4000000, IsSet: true, IsBytes: true},
 										Index:       0,
 									},
 								},
@@ -193,17 +193,17 @@ var _ = Describe("Application Summary Actions", func() {
 							{
 								Process: Process{
 									GUID:       "some-process-guid",
-									MemoryInMB: types.NullUint64{Value: 32, IsSet: true},
+									MemoryInMB: types.NullByteSize{Value: 32, IsSet: true},
 									Type:       "some-type",
 								},
 								InstanceDetails: []Instance{
 									{
 										State:       "RUNNING",
 										CPU:         0.01,
-										MemoryUsage: 1000000,
-										DiskUsage:   2000000,
-										MemoryQuota: 3000000,
-										DiskQuota:   4000000,
+										MemoryUsage: types.NullByteSize{Value: 1000000, IsSet: true, IsBytes: true},
+										DiskUsage:   types.NullByteSize{Value: 2000000, IsSet: true, IsBytes: true},
+										MemoryQuota: types.NullByteSize{Value: 3000000, IsSet: true, IsBytes: true},
+										DiskQuota:   types.NullByteSize{Value: 4000000, IsSet: true, IsBytes: true},
 										Index:       0,
 									},
 								},

@@ -175,7 +175,7 @@ var _ = Describe("App Command", func() {
 							Name:              "some-app",
 							GUID:              "some-app-guid",
 							Instances:         types.NullInt{Value: 3, IsSet: true},
-							Memory:            128,
+							Memory:            types.NullByteSize{Value: 128, IsSet: true},
 							PackageUpdatedAt:  time.Unix(0, 0),
 							DetectedBuildpack: types.FilteredString{IsSet: true, Value: "some-buildpack"},
 							State:             "STARTED",

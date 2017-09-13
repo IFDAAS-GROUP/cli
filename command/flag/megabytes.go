@@ -14,7 +14,7 @@ const (
 )
 
 type Megabytes struct {
-	types.NullUint64
+	types.NullByteSize
 }
 
 func (m *Megabytes) UnmarshalFlag(val string) error {
@@ -35,6 +35,6 @@ func (m *Megabytes) UnmarshalFlag(val string) error {
 
 	m.Value = size
 	m.IsSet = true
-
+	m.IsBytes = false
 	return nil
 }

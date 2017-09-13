@@ -5,6 +5,7 @@ import (
 
 	"code.cloudfoundry.org/cli/api/cloudcontroller/ccerror"
 	. "code.cloudfoundry.org/cli/api/cloudcontroller/ccv3"
+	"code.cloudfoundry.org/cli/types"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/ghttp"
@@ -117,20 +118,20 @@ var _ = Describe("Instance", func() {
 					Instance{
 						State:       "RUNNING",
 						CPU:         0.01,
-						MemoryUsage: 1000000,
-						DiskUsage:   2000000,
-						MemoryQuota: 2000000,
-						DiskQuota:   4000000,
+						MemoryUsage: types.NullByteSize{IsSet: true, Value: 1000000, IsBytes: true},
+						DiskUsage:   types.NullByteSize{IsSet: true, Value: 2000000, IsBytes: true},
+						MemoryQuota: types.NullByteSize{IsSet: true, Value: 2000000, IsBytes: true},
+						DiskQuota:   types.NullByteSize{IsSet: true, Value: 4000000, IsBytes: true},
 						Index:       0,
 						Uptime:      123,
 					},
 					Instance{
 						State:       "RUNNING",
 						CPU:         0.02,
-						MemoryUsage: 8000000,
-						DiskUsage:   16000000,
-						MemoryQuota: 16000000,
-						DiskQuota:   32000000,
+						MemoryUsage: types.NullByteSize{IsSet: true, Value: 8000000, IsBytes: true},
+						DiskUsage:   types.NullByteSize{IsSet: true, Value: 16000000, IsBytes: true},
+						MemoryQuota: types.NullByteSize{IsSet: true, Value: 16000000, IsBytes: true},
+						DiskQuota:   types.NullByteSize{IsSet: true, Value: 32000000, IsBytes: true},
 						Index:       1,
 						Uptime:      456,
 					},

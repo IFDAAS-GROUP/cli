@@ -174,8 +174,8 @@ func (cmd V3ScaleCommand) scaleProcess(appGUID string, username string) (bool, e
 	warnings, err := cmd.Actor.ScaleProcessByApplication(appGUID, v3action.Process{
 		Type:       cmd.ProcessType,
 		Instances:  cmd.Instances.NullInt,
-		MemoryInMB: cmd.MemoryLimit.NullUint64,
-		DiskInMB:   cmd.DiskLimit.NullUint64,
+		MemoryInMB: cmd.MemoryLimit.NullByteSize,
+		DiskInMB:   cmd.DiskLimit.NullByteSize,
 	})
 	cmd.UI.DisplayWarnings(warnings)
 	if err != nil {

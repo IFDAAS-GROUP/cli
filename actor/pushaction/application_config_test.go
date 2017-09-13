@@ -340,8 +340,8 @@ var _ = Describe("Application Config", func() {
 					Expect(firstConfig.DesiredApplication.HealthCheckTimeout).To(Equal(5))
 					Expect(firstConfig.DesiredApplication.HealthCheckType).To(Equal(ccv2.ApplicationHealthCheckPort))
 					Expect(firstConfig.DesiredApplication.Instances).To(Equal(types.NullInt{Value: 1, IsSet: true}))
-					Expect(firstConfig.DesiredApplication.DiskQuota).To(BeNumerically("==", 2))
-					Expect(firstConfig.DesiredApplication.Memory).To(BeNumerically("==", 3))
+					Expect(firstConfig.DesiredApplication.DiskQuota).To(Equal(types.NullByteSize{IsSet: true, Value: 2}))
+					Expect(firstConfig.DesiredApplication.Memory).To(Equal(types.NullByteSize{IsSet: true, Value: 3}))
 					Expect(firstConfig.DesiredApplication.StackGUID).To(Equal("some-stack-guid"))
 					Expect(firstConfig.DesiredApplication.Stack).To(Equal(stack))
 
@@ -366,7 +366,7 @@ var _ = Describe("Application Config", func() {
 							Password: "some-docker-password",
 						},
 						DockerImage: "some-docker-image",
-						DiskQuota:   2,
+						DiskQuota:   types.NullByteSize{IsSet: true, Value: 2},
 						EnvironmentVariables: map[string]string{
 							"env2": "2",
 							"env3": "9",
@@ -376,7 +376,7 @@ var _ = Describe("Application Config", func() {
 						HealthCheckTimeout:      5,
 						HealthCheckType:         "port",
 						Instances:               types.NullInt{Value: 3, IsSet: true},
-						Memory:                  3,
+						Memory:                  types.NullByteSize{IsSet: true, Value: 3},
 						Name:                    appName,
 						StackGUID:               stack.GUID,
 					}
@@ -397,8 +397,8 @@ var _ = Describe("Application Config", func() {
 					Expect(firstConfig.DesiredApplication.HealthCheckTimeout).To(Equal(5))
 					Expect(firstConfig.DesiredApplication.HealthCheckType).To(Equal(ccv2.ApplicationHealthCheckPort))
 					Expect(firstConfig.DesiredApplication.Instances).To(Equal(types.NullInt{Value: 3, IsSet: true}))
-					Expect(firstConfig.DesiredApplication.DiskQuota).To(BeNumerically("==", 2))
-					Expect(firstConfig.DesiredApplication.Memory).To(BeNumerically("==", 3))
+					Expect(firstConfig.DesiredApplication.DiskQuota).To(Equal(types.NullByteSize{IsSet: true, Value: 2}))
+					Expect(firstConfig.DesiredApplication.Memory).To(Equal(types.NullByteSize{IsSet: true, Value: 3}))
 					Expect(firstConfig.DesiredApplication.StackGUID).To(Equal("some-stack-guid"))
 					Expect(firstConfig.DesiredApplication.Stack).To(Equal(stack))
 				})

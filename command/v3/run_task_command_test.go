@@ -206,7 +206,7 @@ get-application-warning-3`))
 				Context("when task disk space is provided", func() {
 					BeforeEach(func() {
 						cmd.Name = "some-task-name"
-						cmd.Disk = flag.Megabytes{NullUint64: types.NullUint64{Value: 321, IsSet: true}}
+						cmd.Disk = flag.Megabytes{NullByteSize: types.NullByteSize{Value: 321, IsSet: true}}
 						fakeActor.RunTaskReturns(
 							v3action.Task{
 								Name:       "some-task-name",
@@ -249,7 +249,7 @@ get-application-warning-3`))
 				Context("when task memory is provided", func() {
 					BeforeEach(func() {
 						cmd.Name = "some-task-name"
-						cmd.Memory = flag.Megabytes{NullUint64: types.NullUint64{Value: 123, IsSet: true}}
+						cmd.Memory = flag.Megabytes{NullByteSize: types.NullByteSize{Value: 123, IsSet: true}}
 						fakeActor.RunTaskReturns(
 							v3action.Task{
 								Name:       "some-task-name",

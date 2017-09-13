@@ -99,13 +99,13 @@ var _ = Describe("Process", func() {
 					Process{
 						GUID:        "process-1-guid",
 						Type:        constant.ProcessTypeWeb,
-						MemoryInMB:  types.NullUint64{Value: 32, IsSet: true},
+						MemoryInMB:  types.NullByteSize{Value: 32, IsSet: true},
 						HealthCheck: ProcessHealthCheck{Type: "port"},
 					},
 					Process{
 						GUID:       "process-2-guid",
 						Type:       "worker",
-						MemoryInMB: types.NullUint64{Value: 64, IsSet: true},
+						MemoryInMB: types.NullByteSize{Value: 64, IsSet: true},
 						HealthCheck: ProcessHealthCheck{
 							Type: "http",
 							Data: ProcessHealthCheckData{Endpoint: "/health"},
@@ -114,7 +114,7 @@ var _ = Describe("Process", func() {
 					Process{
 						GUID:        "process-3-guid",
 						Type:        "console",
-						MemoryInMB:  types.NullUint64{Value: 128, IsSet: true},
+						MemoryInMB:  types.NullByteSize{Value: 128, IsSet: true},
 						HealthCheck: ProcessHealthCheck{Type: "process"},
 					},
 				))
@@ -187,7 +187,7 @@ var _ = Describe("Process", func() {
 				Expect(process).To(Equal(Process{
 					GUID:       "process-1-guid",
 					Type:       "some-type",
-					MemoryInMB: types.NullUint64{Value: 32, IsSet: true},
+					MemoryInMB: types.NullByteSize{Value: 32, IsSet: true},
 					HealthCheck: ProcessHealthCheck{
 						Type: "http",
 						Data: ProcessHealthCheckData{Endpoint: "/health"}},
@@ -416,8 +416,8 @@ var _ = Describe("Process", func() {
 				passedProcess = Process{
 					Type:       constant.ProcessTypeWeb,
 					Instances:  types.NullInt{Value: 2, IsSet: true},
-					MemoryInMB: types.NullUint64{Value: 100, IsSet: true},
-					DiskInMB:   types.NullUint64{Value: 200, IsSet: true},
+					MemoryInMB: types.NullByteSize{Value: 100, IsSet: true},
+					DiskInMB:   types.NullByteSize{Value: 200, IsSet: true},
 				}
 				expectedBody := `{
 					"instances": 2,
@@ -448,8 +448,8 @@ var _ = Describe("Process", func() {
 				passedProcess = Process{
 					Type:       constant.ProcessTypeWeb,
 					Instances:  types.NullInt{Value: 0, IsSet: true},
-					MemoryInMB: types.NullUint64{Value: 0, IsSet: true},
-					DiskInMB:   types.NullUint64{Value: 0, IsSet: true},
+					MemoryInMB: types.NullByteSize{Value: 0, IsSet: true},
+					DiskInMB:   types.NullByteSize{Value: 0, IsSet: true},
 				}
 				expectedBody := `{
 					"instances": 0,
