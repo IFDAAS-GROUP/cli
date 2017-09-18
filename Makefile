@@ -12,11 +12,28 @@ all : test i18n-binary build
 
 build : out/cf
 
+check_target_env :
+ifndef CF_API
+	$(error CF_API is undefined)
+endif
+ifndef CF_PASSWORD
+	$(error CF_PASSWORD is undefined)
+endif
+
 clean :
 	rm -r $(wildcard out/*)
 
 format :
 	go fmt ./...
+
+fly-windows-experimental : check_target_env
+	CF_CLI_EXPERIMENTAL=true CF_TEST_SUITE=./integration/experimental fly -t ci execute -c ci/cli/tasks/integration-windows-oneoff.yml -i cli=./ -x
+
+fly-windows-isolated : check_target_env
+	CF_TEST_SUITE=./integration/isolated fly -t ci execute -c ci/cli/tasks/integration-windows-oneoff.yml -i cli=./ -x
+
+fly-windows-push : check_target_env
+	CF_TEST_SUITE=./integration/push fly -t ci execute -c ci/cli/tasks/integration-windows-oneoff.yml -i cli=./ -x
 
 i18n :
 	$(PWD)/bin/i18n-checkup
