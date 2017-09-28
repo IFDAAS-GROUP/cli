@@ -655,6 +655,7 @@ var _ = Describe("v2-push Command", func() {
 				cmd.Instances = flag.Instances{NullInt: types.NullInt{Value: 12, IsSet: true}}
 				cmd.Memory = flag.Megabytes{NullUint64: types.NullUint64{Value: 100, IsSet: true}}
 				cmd.StackName = "some-stack"
+				cmd.Domain = "some-domain"
 			})
 
 			It("sets them on the command line settings", func() {
@@ -667,6 +668,7 @@ var _ = Describe("v2-push Command", func() {
 				Expect(settings.Instances).To(Equal(types.NullInt{Value: 12, IsSet: true}))
 				Expect(settings.Memory).To(Equal(uint64(100)))
 				Expect(settings.StackName).To(Equal("some-stack"))
+				Expect(settings.Domain).To(Equal("some-domain"))
 			})
 		})
 

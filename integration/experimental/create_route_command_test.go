@@ -446,7 +446,7 @@ var _ = Describe("create-route command", func() {
 						})
 					})
 
-					Context("when a port is provided", func() {
+					FContext("when a port is provided", func() {
 						It("creates the route", func() {
 							port := "1110"
 							session := helpers.CF("create-route", spaceName, domainName, "--port", port)

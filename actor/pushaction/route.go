@@ -8,6 +8,7 @@ import (
 	"code.cloudfoundry.org/cli/actor/actionerror"
 	"code.cloudfoundry.org/cli/actor/v2action"
 	"code.cloudfoundry.org/cli/types"
+	"code.cloudfoundry.org/cli/util/manifest"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -37,8 +38,9 @@ func (actor Actor) BindRoutes(config ApplicationConfig) (ApplicationConfig, bool
 	return config, boundRoutes, allWarnings, nil
 }
 
-func (actor Actor) CalculateRoutes(routes []string, orgGUID string, spaceGUID string, existingRoutes []v2action.Route) ([]v2action.Route, Warnings, error) {
-	calculatedRoutes, unknownRoutes := actor.spitExistingRoutes(existingRoutes, routes)
+// TODO: return route with domain from -d flag
+func (actor Actor) CalculateRoutes(appSettings manifest.Application, orgGUID string, spaceGUID string, existingRoutes []v2action.Route) ([]v2action.Route, Warnings, error) {
+	calculatedRoutes, unknownRoutes := actor.splitExistingRoutes(existingRoutes, appSettings.Routes)
 	possibleDomains, err := actor.generatePossibleDomains(unknownRoutes)
 	if err != nil {
 		log.Errorln("domain breakdown:", err)
@@ -172,18 +174,33 @@ func (actor Actor) CreateRoutes(config ApplicationConfig) (ApplicationConfig, bo
 	return config, createdRoutes, allWarnings, nil
 }
 
-// GetRouteWithDefaultDomain returns a route with the host and the default org
+// GetRouteWithDesiredDomain returns a route with the host and the default org
 // domain. This may be a partial route (ie no GUID) if the route does not
 // exist.
-func (actor Actor) GetRouteWithDefaultDomain(host string, orgGUID string, spaceGUID string, knownRoutes []v2action.Route) (v2action.Route, Warnings, error) {
-	defaultDomain, warnings, err := actor.DefaultDomain(orgGUID)
-	if err != nil {
-		log.Errorln("could not find default domains:", err.Error())
-		return v2action.Route{}, warnings, err
+func (actor Actor) GetRouteWithDesiredDomain(manifestApp manifest.Application, host string, orgGUID string, spaceGUID string, knownRoutes []v2action.Route) (v2action.Route, Warnings, error) {
+	var (
+		desiredDomain v2action.Domain
+		warnings      Warnings
+		err           error
+	)
+
+	if manifestApp.Domain == "" {
+		desiredDomain, warnings, err = actor.DefaultDomain(orgGUID)
+		if err != nil {
+			log.Errorln("could not find default domains:", err.Error())
+			return v2action.Route{}, warnings, err
+		}
+	} else {
+		desiredDomains, warnings, err := actor.V2Actor.GetDomainsByNameAndOrganization([]string{manifestApp.Domain}, orgGUID)
+		if err != nil {
+			log.Errorln("could not find provided domains '%s':", manifestApp.Domain, err.Error())
+			return v2action.Route{}, Warnings(warnings), err
+		}
+		desiredDomain = desiredDomains[0]
 	}
 
 	defaultRoute := v2action.Route{
-		Domain:    defaultDomain,
+		Domain:    desiredDomain,
 		Host:      strings.ToLower(host),
 		SpaceGUID: spaceGUID,
 	}
@@ -323,7 +340,7 @@ func (Actor) routeInListBySettings(route v2action.Route, routes []v2action.Route
 	return v2action.Route{}, false
 }
 
-func (actor Actor) spitExistingRoutes(existingRoutes []v2action.Route, routes []string) ([]v2action.Route, []string) {
+func (actor Actor) splitExistingRoutes(existingRoutes []v2action.Route, routes []string) ([]v2action.Route, []string) {
 	var cachedRoutes []v2action.Route
 	for _, route := range existingRoutes {
 		cachedRoutes = append(cachedRoutes, route)

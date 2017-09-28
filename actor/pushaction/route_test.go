@@ -8,6 +8,7 @@ import (
 	. "code.cloudfoundry.org/cli/actor/pushaction"
 	"code.cloudfoundry.org/cli/actor/pushaction/pushactionfakes"
 	"code.cloudfoundry.org/cli/actor/v2action"
+	"code.cloudfoundry.org/cli/util/manifest"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -119,6 +120,7 @@ var _ = Describe("Routes", func() {
 
 	Describe("CalculateRoutes", func() {
 		var (
+			appManifest    manifest.Application
 			routes         []string
 			orgGUID        string
 			spaceGUID      string
@@ -137,12 +139,13 @@ var _ = Describe("Routes", func() {
 				"d.c.b.a.com",
 				"a.com/some-path",
 			}
+			appManifest.Routes = routes
 			orgGUID = "some-org-guid"
 			spaceGUID = "some-space-guid"
 		})
 
 		JustBeforeEach(func() {
-			calculatedRoutes, warnings, executeErr = actor.CalculateRoutes(routes, orgGUID, spaceGUID, existingRoutes)
+			calculatedRoutes, warnings, executeErr = actor.CalculateRoutes(appManifest, orgGUID, spaceGUID, existingRoutes)
 		})
 
 		Context("when there are no known routes", func() {
@@ -759,7 +762,7 @@ var _ = Describe("Routes", func() {
 		})
 
 		JustBeforeEach(func() {
-			defaultRoute, warnings, executeErr = actor.GetRouteWithDefaultDomain(host, orgGUID, spaceGUID, knownRoutes)
+			defaultRoute, warnings, executeErr = actor.GetRouteWithDesiredDomain(manifest.Application{}, host, orgGUID, spaceGUID, knownRoutes)
 		})
 
 		Context("when retrieving the domains is successful", func() {
